@@ -1,0 +1,202 @@
+{
+ "env": {
+  "gpu": "Tesla T4",
+  "torch": "2.11.0+cu128",
+  "cuda": "12.8",
+  "cudnn": 91900,
+  "onnxruntime": "1.22.0",
+  "onnx": "1.22.0",
+  "cpu_threads": 2,
+  "test_images": 180,
+  "input_size": 1536,
+  "tta_views": 4,
+  "members": [
+   "v24",
+   "v27",
+   "v31"
+  ]
+ },
+ "exports": [
+  {
+   "member": "v24",
+   "kind": "fp32",
+   "fp16_convs": 0,
+   "export_s": 4.8,
+   "mb": 127.8,
+   "max_abs_prob_diff_vs_torch_fp32": 2.065300941467285e-05,
+   "mean_abs_prob_diff_vs_torch_fp32": 2.6777494110952205e-10
+  },
+  {
+   "member": "v24",
+   "kind": "mixed_fp16",
+   "fp16_convs": 11,
+   "export_s": 1.7,
+   "mb": 119.6,
+   "max_abs_prob_diff_vs_torch_fp32": 0.002429872751235962,
+   "mean_abs_prob_diff_vs_torch_fp32": 6.286110760811425e-07
+  },
+  {
+   "member": "v27",
+   "kind": "fp32",
+   "fp16_convs": 0,
+   "export_s": 1.3,
+   "mb": 127.8,
+   "max_abs_prob_diff_vs_torch_fp32": 2.9802322387695312e-06,
+   "mean_abs_prob_diff_vs_torch_fp32": 2.257507236702594e-10
+  },
+  {
+   "member": "v27",
+   "kind": "mixed_fp16",
+   "fp16_convs": 11,
+   "export_s": 1.4,
+   "mb": 119.6,
+   "max_abs_prob_diff_vs_torch_fp32": 0.0026099085807800293,
+   "mean_abs_prob_diff_vs_torch_fp32": 6.349775958369719e-07
+  },
+  {
+   "member": "v31",
+   "kind": "fp32",
+   "fp16_convs": 0,
+   "export_s": 1.4,
+   "mb": 127.8,
+   "max_abs_prob_diff_vs_torch_fp32": 6.258487701416016e-06,
+   "mean_abs_prob_diff_vs_torch_fp32": 1.64950275660658e-10
+  },
+  {
+   "member": "v31",
+   "kind": "mixed_fp16",
+   "fp16_convs": 11,
+   "export_s": 1.4,
+   "mb": 119.6,
+   "max_abs_prob_diff_vs_torch_fp32": 0.002288520336151123,
+   "mean_abs_prob_diff_vs_torch_fp32": 4.025168038879201e-07
+  }
+ ],
+ "results": {
+  "A_torch_fp32": {
+   "config": "A. PyTorch fp32 (shipped)",
+   "cold_start_s": 30.2,
+   "warmup_s_2_images": 8.3,
+   "total_s": 883.8,
+   "s_per_image": 4.91,
+   "stages_s_per_image": {
+    "read": 0.0291,
+    "preprocess": 0.5068,
+    "network": 3.9014,
+    "tta_blend_upsample": 0.0298,
+    "decode": 0.1546,
+    "filter": 0.15,
+    "encode": 0.1278,
+    "other": 0.0108
+   },
+   "network_calls": 2160,
+   "rows": 1279,
+   "submission": "submission_A_torch_fp32.csv",
+   "rows_identical_to_A": 1.0
+  },
+  "B_torch_fp32_bench": {
+   "config": "B. PyTorch fp32 + cudnn.benchmark",
+   "cold_start_s": 30.2,
+   "warmup_s_2_images": 9.2,
+   "total_s": 886.4,
+   "s_per_image": 4.925,
+   "stages_s_per_image": {
+    "read": 0.0174,
+    "preprocess": 0.5034,
+    "network": 3.9231,
+    "tta_blend_upsample": 0.0295,
+    "decode": 0.1528,
+    "filter": 0.1487,
+    "encode": 0.1279,
+    "other": 0.0219
+   },
+   "network_calls": 2160,
+   "rows": 1279,
+   "submission": "submission_B_torch_fp32_bench.csv",
+   "maps_vs_A": {
+    "max_abs_diff_255": 0,
+    "mean_abs_diff_255": 0.0,
+    "share_pixels_diff_gt1": 0.0
+   },
+   "rows_identical_to_A": 1.0
+  },
+  "C_onnx_fp32": {
+   "config": "C. ONNX Runtime fp32",
+   "cold_start_s": 0.5,
+   "warmup_s_2_images": 9.9,
+   "total_s": 935.5,
+   "s_per_image": 5.197,
+   "stages_s_per_image": {
+    "read": 0.0181,
+    "preprocess": 0.5047,
+    "network": 4.1969,
+    "tta_blend_upsample": 0.0292,
+    "decode": 0.1518,
+    "filter": 0.1487,
+    "encode": 0.1267,
+    "other": 0.0213
+   },
+   "network_calls": 2160,
+   "rows": 1279,
+   "submission": "submission_C_onnx_fp32.csv",
+   "maps_vs_A": {
+    "max_abs_diff_255": 1,
+    "mean_abs_diff_255": 6.622738308376736e-08,
+    "share_pixels_diff_gt1": 0.0
+   },
+   "rows_identical_to_A": 1.0
+  },
+  "E_onnx_mixed_fp16": {
+   "config": "E. ONNX Runtime mixed fp16",
+   "cold_start_s": 0.5,
+   "warmup_s_2_images": 9.4,
+   "total_s": 898.8,
+   "s_per_image": 4.993,
+   "stages_s_per_image": {
+    "read": 0.0176,
+    "preprocess": 0.5045,
+    "network": 3.9917,
+    "tta_blend_upsample": 0.03,
+    "decode": 0.1528,
+    "filter": 0.1492,
+    "encode": 0.1263,
+    "other": 0.0214
+   },
+   "network_calls": 2160,
+   "rows": 1280,
+   "submission": "submission_E_onnx_mixed_fp16.csv",
+   "maps_vs_A": {
+    "max_abs_diff_255": 1,
+    "mean_abs_diff_255": 5.249977111816406e-05,
+    "share_pixels_diff_gt1": 0.0
+   },
+   "rows_identical_to_A": 0.9296325254104769
+  },
+  "D_torch_mixed_fp16": {
+   "config": "D. PyTorch mixed fp16",
+   "cold_start_s": 30.3,
+   "warmup_s_2_images": 8.7,
+   "total_s": 847.7,
+   "s_per_image": 4.71,
+   "stages_s_per_image": {
+    "read": 0.0169,
+    "preprocess": 0.4811,
+    "network": 3.7454,
+    "tta_blend_upsample": 0.0277,
+    "decode": 0.1458,
+    "filter": 0.1472,
+    "encode": 0.1259,
+    "other": 0.0196
+   },
+   "network_calls": 2160,
+   "rows": 1280,
+   "submission": "submission_D_torch_mixed_fp16.csv",
+   "maps_vs_A": {
+    "max_abs_diff_255": 1,
+    "mean_abs_diff_255": 5.243751737806532e-05,
+    "share_pixels_diff_gt1": 0.0
+   },
+   "rows_identical_to_A": 0.9288506645817045
+  }
+ }
+}

@@ -1,0 +1,148 @@
+{
+ "common": {
+  "architecture": "FilamentUNet: ConvNeXt-Tiny encoder (timm convnext_tiny.dinov3_lvd1689m, DINOv3-distilled init) + U-Net decoder (256/128/64/32) + full-resolution stem; heads: filament mask, filament spine",
+  "parameters": 31900000.0,
+  "input": "1536 x 1536, 3 channels (background-normalised, CLAHE, dark-ridge response)",
+  "training_data": "MAGFiLO folds 1-4 (566 images); fold 0 (141 images) held out for validation",
+  "optimiser": "AdamW lr 3e-4 (encoder x0.1), weight decay 1e-4, batch 1 x accumulation 2, cosine to 0, AMP with fp32 encoder",
+  "loss": "BCE + 0.5 per-instance Dice + 0.5 image Dice + 0.5 Skeleton Recall (drawn spine) + 0.3 spine-head BCE",
+  "hardware": "one NVIDIA Tesla T4 (Kaggle), 13-17 min per epoch"
+ },
+ "ensemble": {
+  "members": [
+   "v24",
+   "v27",
+   "v31"
+  ],
+  "combination": "mean of sigmoid probabilities over 3 members x 4 flips",
+  "fold0_pq_filtered_pinned_decode": 0.4529,
+  "fold0_pq_filtered_final_decode": 0.4573,
+  "fold0_pq_split_averaged_final_decode": 0.4548,
+  "public_lb": 0.39,
+  "note": "single members score 0.437-0.449 with their own filters; the ensemble is the only change that cleared the +0.005 adoption bar"
+ },
+ "members": {
+  "v24": {
+   "targets": "medoid annotator (the record agreeing most with the others)",
+   "augmentation": "D4 rotations/flips, gamma, blur, noise, CLAHE strength",
+   "schedule": "35 epochs requested; stopped by the session budget after 23; best validated epoch (17) kept",
+   "fold0_pq_filtered": 0.4494,
+   "public_lb": 0.39,
+   "file": "weights/v24.fp16.pt",
+   "megabytes": 61.0,
+   "fingerprint": "d3a2e435f53e8dbe",
+   "trained_by": {
+    "kaggle_notebook": "alok158/solar-filament",
+    "version": 24,
+    "completed": "2026-10-10",
+    "run": "23 of 35 epochs (stopped by the 8 h budget); best fold-0 epoch 17 kept",
+    "copy": "training_notebooks/v24.ipynb",
+    "weights_chain": "version 24 output checkpoint -> private dataset alok158/solar-filament-blend-models (v24.pt, fp32) -> weights/v24.fp16.pt (provenance/build_release_weights.py)"
+   }
+  },
+  "v27": {
+   "targets": "a random annotator record per sample (label augmentation)",
+   "augmentation": "v24 + rotation +-15 deg and scale +-12.5% on half of the samples",
+   "schedule": "26 epochs, best validated epoch (21) kept",
+   "fold0_pq_filtered": 0.4427,
+   "public_lb": 0.38,
+   "file": "weights/v27.fp16.pt",
+   "megabytes": 61.0,
+   "fingerprint": "94c3a2a2d740398a",
+   "trained_by": {
+    "kaggle_notebook": "alok158/solar-filament",
+    "version": 27,
+    "completed": "2026-10-13",
+    "run": "26 of 26 epochs (8.7 h session); best fold-0 epoch 21 kept",
+    "copy": "training_notebooks/v27.ipynb",
+    "weights_chain": "version 27 output checkpoint -> private dataset alok158/solar-filament-blend-models (v27.pt, fp32) -> weights/v27.fp16.pt (provenance/build_release_weights.py)"
+   }
+  },
+  "v31": {
+   "targets": "50/50 medoid / random annotator per sample",
+   "augmentation": "as v27",
+   "schedule": "30 epochs, final epoch kept (no selection on validation images)",
+   "fold0_pq_filtered": 0.4375,
+   "public_lb": 0.38,
+   "file": "weights/v31.fp16.pt",
+   "megabytes": 61.0,
+   "fingerprint": "d749aa06b75a627c",
+   "trained_by": {
+    "kaggle_notebook": "alok158/solar-filament",
+    "version": 31,
+    "completed": "2026-10-15",
+    "run": "30 of 30 epochs (one 9.8 h session); final epoch kept",
+    "copy": "training_notebooks/v31.ipynb",
+    "weights_chain": "version 31 output checkpoint -> private dataset alok158/solar-filament-blend-models (v31.pt, fp32) -> weights/v31.fp16.pt (provenance/build_release_weights.py)"
+   }
+  }
+ },
+ "refiners": {
+  "common": {
+   "architecture": "FilamentUNet with a 7-channel stem and one head (ConvNeXt-Tiny DINOv3 encoder, first convolution adapted the timm way)",
+   "input": "128 x 384 crop per kept filament, rotated so its long axis is horizontal, native 2048 px scale (shrunk only to fit): background-normalised, CLAHE, ridge (native resolution), ensemble mask and spine probabilities, the filament (seed), the other kept filaments",
+   "target": "per pixel, the share of the annotators who drew this filament that mark the pixel",
+   "training_data": "12,683 crops from the ensemble maps of folds 1-4 (decode levels 0.5 / 0.6 / 0.7, candidates some annotator drew); fold 0 never seen",
+   "optimiser": "AdamW lr 2e-4, weight decay 1e-4, batch 24, 1-epoch warm-up then cosine, 16 epochs, AMP with fp32 encoder",
+   "loss": "soft-target BCE + per-crop soft Dice",
+   "inference": "mean of 2 seeds x 4 flips, threshold 0.40, paste-back keeps seed-touching components, conflicts to the higher probability",
+   "hardware": "one NVIDIA Tesla T4 per seed (Kaggle), both seeds at once, 82 min",
+   "fold0_pq": {
+    "before": 0.4573,
+    "after": 0.4679,
+    "delta": 0.0106,
+    "delta_95ci": [
+     0.0073,
+     0.014
+    ]
+   },
+   "public_lb": 0.4,
+   "trained_by": "this notebook, Section 7 (REFINER_TRAINING = full)",
+   "training_crops": 12683,
+   "adoption_experiment": {
+    "fold0_pq_after": 0.469,
+    "delta": 0.0118,
+    "delta_95ci": [
+     0.0087,
+     0.0151
+    ],
+    "note": "a separately trained pair (same recipe and crops) that decided the adoption"
+   }
+  },
+  "refiner_s0": {
+   "seed": 0,
+   "fold0_pq_alone": 0.4659,
+   "file": "refiner_s0.fp16.pt",
+   "megabytes": 63.9,
+   "fingerprint": "e30eab77fcb7127c",
+   "training_minutes": 81.0,
+   "trained_by": "solar_filament_pipeline.ipynb, Section 7, REFINER_TRAINING = full",
+   "trained_on": "2026-11-14"
+  },
+  "refiner_s1": {
+   "seed": 1,
+   "fold0_pq_alone": 0.4663,
+   "file": "refiner_s1.fp16.pt",
+   "megabytes": 63.9,
+   "fingerprint": "c3546dc63bb8802a",
+   "training_minutes": 82.2,
+   "trained_by": "solar_filament_pipeline.ipynb, Section 7, REFINER_TRAINING = full",
+   "trained_on": "2026-11-14"
+  }
+ },
+ "system": {
+  "members": [
+   "v24",
+   "v27",
+   "v31"
+  ],
+  "refiners": [
+   "refiner_s0",
+   "refiner_s1"
+  ],
+  "fold0_pq": 0.4679,
+  "fold0_pq_without_refiner": 0.4573,
+  "public_lb": 0.4,
+  "note": "ensemble + no-merge decode + instance filter + stage-2 refiner; the committed notebook run, submitted 2026-11-14 (public LB 0.40)"
+ }
+}

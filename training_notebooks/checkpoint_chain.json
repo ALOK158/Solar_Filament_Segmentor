@@ -1,0 +1,44 @@
+{
+ "v24": {
+  "version": 24,
+  "file_MB": 127.8,
+  "top_keys": [
+   "mean",
+   "std",
+   "encoder.stem_0.weight",
+   "encoder.stem_0.bias",
+   "encoder.stem_1.weight",
+   "encoder.stem_1.bias"
+  ],
+  "fingerprint": "d3a2e435f53e8dbe",
+  "matches_shipped": true
+ },
+ "v27": {
+  "version": 27,
+  "file_MB": 127.8,
+  "top_keys": [
+   "mean",
+   "std",
+   "encoder.stem_0.weight",
+   "encoder.stem_0.bias",
+   "encoder.stem_1.weight",
+   "encoder.stem_1.bias"
+  ],
+  "fingerprint": "94c3a2a2d740398a",
+  "matches_shipped": true
+ },
+ "v31": {
+  "version": 31,
+  "file_MB": 127.8,
+  "top_keys": [
+   "mean",
+   "std",
+   "encoder.stem_0.weight",
+   "encoder.stem_0.bias",
+   "encoder.stem_1.weight",
+   "encoder.stem_1.bias"
+  ],
+  "fingerprint": "d749aa06b75a627c",
+  "matches_shipped": true
+ }
+}

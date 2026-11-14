@@ -1,0 +1,13 @@
+1. channels identical on 3 images
+2. forward identical (256 px); fp16-stored weights: max |dprob| 1.64e-06, mean 7.51e-08; params {'encoder': 27818592, 'decoder': 4110528, 'stem': 2800, 'head': 66, 'total': 31931986}; fingerprint d3a2e435f53e8dbe
+3. decode identical on 141 maps (1325 instances, 42s)
+5. RLE, per-record PQ and medoid choice identical
+6. augmentation (affine + photometric_v2) and loss (labelled and pseudo) identical
+filter: unfiltered PQ 0.42223 -> filtered 0.45672 at t=0.3652 (closed form 0.3152); drops 27.5% -> deployed threshold 0.3087
+   instances        new 1325.000000 | old 1325.000000
+   unfiltered_pq    new 0.422232 | old 0.422232
+   filtered_pq      new 0.456720 | old 0.456720
+   threshold        new 0.365200 | old 0.365200
+   deploy_threshold new 0.308724 | old 0.308724
+4. filter fit identical (574s); AUC(any annotator) 0.798
+ALL CHECKS PASS
