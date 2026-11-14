@@ -2,7 +2,7 @@
 
 Our entry to the IEEE / Kaggle **Solar Filament Segmentation Challenge 2026** ([competition](https://www.kaggle.com/competitions/filament-segmentation-2026)). The task is to find every solar filament in a GONG H-alpha full-disk image and return each one as a separate, pixel-disjoint mask.
 
-**Team:**TeamP(ALOK RAI, Aditya kumar) · **Report:** `report.pdf` · **Leaderboard file:** produced by the committed notebook run (public LB 0.40)
+**Team:** Alok Rai, Aditya Kumar · **Report:** `report.pdf` · **Leaderboard file:** produced by the committed notebook run (public LB 0.40)
 
 **For the judges, where to look:**
 - **Rubric against human agreement:** notebook Section 8, `figures/rubric_bars.png`, `figures/iou_pairs.png`, `figures/dice_pairs.png`.
@@ -30,10 +30,7 @@ Fold 0: 141 held-out images with 1–3 annotators each. PQ is pooled over every 
 | Stage 1 (ensemble + filter), all 141 images | 0.457 | 0.595 | 0.729 | 18.0% | 12.7% | 2.5% | 2.6% |
 | **This system** (stage 1 + refiner), all 141 images | **0.468** | **0.603** | **0.734** | 18.0% | **12.7%** | **2.5%** | **2.7%** |
 
-- **Like for like:** human agreement can only be measured on the 67 images with more than one annotator. On those images the system scores 0.464 [0.441, 0.487] against 0.350 [0.325, 0.377], a paired difference of +0.114 [+0.090, +0.136].
-- **The refiner:** on the same 948 kept filaments it adds +0.011 PQ [+0.007, +0.014].
-- Intervals are 95% bootstrap intervals over images. Every filtered number uses out-of-fold filter scores.
-- **Public leaderboard:** 0.40 (stage 1 alone: 0.39).
+Human agreement can only be measured on the 67 images with more than one annotator. On those images the system scores 0.464 [0.441, 0.487] against 0.350 [0.325, 0.377], a paired difference of +0.114 [+0.090, +0.136]. On the same 948 kept filaments the refiner adds +0.011 PQ [+0.007, +0.014]. Intervals are 95% bootstrap intervals over images, and every filtered number uses out-of-fold filter scores. Public leaderboard: 0.40 (stage 1 alone: 0.39).
 
 ![Our masks and the human baseline on the rubric's statistics](figures/rubric_bars.png)
 
@@ -44,7 +41,7 @@ Fold 0: 141 held-out images with 1–3 annotators each. PQ is pooled over every 
 ## Quick start
 
 ```bash
-git clone <this repository> && cd <repository>
+git clone https://github.com/ALOK158/Solar_Filament_Segmentor.git && cd Solar_Filament_Segmentor
 conda create -n filament python=3.13 -y && conda activate filament     # Python 3.11-3.13
 # On a GPU machine install the torch build that matches your driver first, e.g.
 #   pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu126   (or cu128 / cu130)
@@ -57,18 +54,18 @@ jupyter lab solar_filament_pipeline.ipynb
 
 The notebook looks for `MAGFiLO_1.0_Annotations_kaggle2026_train.json`, `train_images/` and `test_images/` at any depth under `FILAMENT_DATA`, `./data` or `../data`. The validation sections need the training images and annotations as well as the test images.
 
-**A default run** needs no internet. It does the following:
+A default run needs no internet. It does the following:
 1. Loads the shipped weights.
 2. Reproduces the validation numbers from the stored fold-0 maps, refining the 948 kept validation filaments on the way (about 6 minutes; the crops are prepared on the CPU).
 3. Segments all 180 test images into `outputs/submission.csv`.
 4. Draws every figure into `outputs/figures/`.
 5. Checks the ONNX export.
 
-**Runtime.** On a Tesla T4 a default run takes about 45 minutes, most of it test inference: 10.0 s per image, of which the three networks take 6.9 s and the refiner 1.9 s. On a CPU, all 180 test images take about 3 hours; set `FILAMENT_MAX_TEST=3` for a 25-minute check.
+On a Tesla T4 a default run takes about 45 minutes, most of it test inference: 10.0 s per image, of which the three networks take 6.9 s and the refiner 1.9 s. On a CPU, all 180 test images take about 3 hours; set `FILAMENT_MAX_TEST=3` for a 25-minute check.
 
-**Tested on** Python 3.13.16, torch 2.11.0 with CUDA 13.0, and a Tesla T4 (16 GB), on Kaggle. `pytest tests/` runs the unit tests (CPU, no data needed).
+We tested on Python 3.13.16, torch 2.11.0 with CUDA 13.0 and a Tesla T4 (16 GB), on Kaggle. `pytest tests/` runs the unit tests (CPU, no data needed).
 
-**The committed notebook is not a default run.** It was executed on Kaggle with `FILAMENT_REPREDICT_VALIDATION=1 FILAMENT_REFIT_FILTER=1 FILAMENT_TRAINING=smoke FILAMENT_REFINER_TRAINING=full FILAMENT_SAVE_RELEASE=1`. That run took 4.7 h on two T4s and trained the shipped refiners itself.
+The committed notebook is not a default run. It was executed on Kaggle with `FILAMENT_REPREDICT_VALIDATION=1 FILAMENT_REFIT_FILTER=1 FILAMENT_TRAINING=smoke FILAMENT_REFINER_TRAINING=full FILAMENT_SAVE_RELEASE=1`. That run took 4.7 h on two T4s and trained the shipped refiners itself.
 
 | Switch (cell 1, or environment variable) | Default | Effect |
 |---|---|---|
@@ -129,22 +126,13 @@ Each choice below was adopted only if it beat seed noise (±0.004 PQ on fold 0) 
 
 - **Input.** The whole disk is resized to 1536 px rather than tiled, because global context beat native-resolution tiles. Two of the three channels remove limb darkening and amplify thin dark ridges.
 - **Model.** A ConvNeXt-Tiny encoder with DINOv3 initialisation feeds a U-Net decoder. A full-resolution stem keeps the 1–2 px edges, since the encoder's first features are at stride 4.
-- **Loss.**
-  - BCE.
-  - Dice, half of it computed per instance, because the metric is per instance.
-  - Skeleton Recall on the annotators' drawn spines.
-  - A spine head trained as deep supervision.
+- **Loss.** BCE plus Dice (half of the Dice computed per instance, because the metric is per instance), Skeleton Recall on the annotators' drawn spines, and a spine head trained as deep supervision.
+- **Members.** The three networks are named v24, v27 and v31 after the notebook versions that trained them; the report calls them M1, M2 and M3, in that order.
 - **Labels.** Images have 1–3 annotators, and the metric pools them all. Members train on the *medoid* annotator (the one who agrees most with the others), on a random annotator, or on a mix. Averaging the three members was the only change to the network that cleared the adoption bar.
 - **Instances.** Instances are connected components, so they are disjoint by construction. Joining fragments across gaps raised merges above the human rate and was switched off.
-- **Filter.** It predicts the share of annotators who would draw each candidate. A candidate is dropped when that share is below ½·PQ/SQ, which is exactly when dropping raises pooled PQ.
-  - Effect: 0.422 → 0.457.
-  - It is cross-fitted by observation date on the validation fold only.
-- **Refiner (stage 2).** With perfect outlines for the kept filaments, fold-0 PQ would be 0.652, so the headroom is in the outlines rather than in which filaments are kept. Each kept filament gets a 128 × 384 crop at native resolution, rotated along its axis and long enough to show where it ends. Two refiners (seeds 0 and 1) predict the share of the filament's annotators who mark each pixel, from the image, the ensemble's maps, the filament and its kept neighbours.
-  - Effect: 0.457 → 0.468 on the same 948 filaments; each seed alone reaches 0.466. Public leaderboard 0.39 → 0.40.
-  - The experiment that adopted it trained a separate pair with the same recipe and measured 0.469, so the gain reproduces across training runs.
-  - Trained only on crops from the 566 training images; the 0.40 pixel threshold was fixed before the experiment.
-  - Decision-layer alternatives measured at the same time did not pay: candidate trees over 8 thresholds lost 0.002–0.012, and an expected-IoU target tied.
-- **Unlabelled data.** A teacher–student student trained on soft pseudo-labels of 1375 unlabelled GONG frames from 2023–2026 gained +0.014 over its labelled-only control. It equals the 3-model ensemble at a third of the inference cost; it is documented and trainable here, and the ensemble ships.
+- **Filter.** It predicts the share of annotators who would draw each candidate. A candidate is dropped when that share is below ½·PQ/SQ, which is exactly when dropping raises pooled PQ. It is cross-fitted by observation date on the validation fold only, and takes PQ from 0.422 to 0.457.
+- **Refiner (stage 2).** With perfect outlines for the kept filaments, fold-0 PQ would be 0.652, so most of what is left to gain is in the outlines. Each kept filament gets a 128 × 384 crop at native resolution, rotated along its axis and long enough to show where it ends. Two refiners (seeds 0 and 1) predict the share of the filament's annotators who mark each pixel, from the image, the ensemble's maps, the filament and its kept neighbours. They take PQ from 0.457 to 0.468 on the same 948 filaments (each seed alone reaches 0.466), and the public leaderboard from 0.39 to 0.40. The experiment that adopted the refiner trained a separate pair with the same recipe and measured 0.469. The refiners are trained only on crops from the 566 training images, and the 0.40 pixel threshold was fixed before the experiment. Two alternatives measured at the same time did not help: candidate trees over 8 thresholds lost 0.002–0.012, and an expected-IoU target tied.
+- **Unlabelled data.** A student network trained on the ensemble's soft pseudo-labels of 1375 unlabelled GONG frames from 2023–2026 gained +0.014 over its labelled-only control. It matches the 3-model ensemble at a third of the inference cost. The notebook can train it, but the ensemble is what ships.
 - **Tried and rejected** (each with its measurement in the docstrings):
   - Mask2Former, wider and higher-resolution decoders, and a border head.
   - Soft annotator-mean targets.
