@@ -2,7 +2,9 @@
 
 Our entry to the IEEE / Kaggle **Solar Filament Segmentation Challenge 2026** ([competition](https://www.kaggle.com/competitions/filament-segmentation-2026)). The task is to find every solar filament in a GONG H-alpha full-disk image and return each one as a separate, pixel-disjoint mask.
 
-**Team:** Alok Rai, Aditya Kumar · **Report:** `report.pdf` · **Leaderboard file:** produced by the committed notebook run (public LB 0.40)
+**Team:** Alok Rai, Aditya Kumar · **Report:** `report.pdf` · **Leaderboard file:** produced oby the committed notebook run (public LB 0.40)
+
+**Final_Standing:** 94/1458
 
 **For the judges, where to look:**
 - **Rubric against human agreement:** notebook Section 8, `figures/rubric_bars.png`, `figures/iou_pairs.png`, `figures/dice_pairs.png`.
